@@ -5,5 +5,3 @@ Scope of the project:
 - Backend- Python/Java/Jython(? :D)
 - DB- Postgres
 - API's that would be useful- OpenCV(find out how it works)?
-
-moew
