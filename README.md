@@ -1,4 +1,4 @@
-![Warehouse Drone Management banner](./docs/assets/banner.png)
+![Warehouse Drone Management banner](./docs/assets/ChatGPT Image Dec 16,2025, 09_11_24 PM.png)
 
 # Warehouse Drone Management (WDM)
 ### Drone-Based Warehouse Inventory Scanning System (Prototype)
