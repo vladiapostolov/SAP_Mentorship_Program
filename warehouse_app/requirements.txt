@@ -1,0 +1,9 @@
+---FILEPATH warehouse_app/requirements.txt
+---FIND
+```
+```
+---REPLACE
+```
+mysql-connector-python
+```
+---COMPLETEmysql-connector-python
