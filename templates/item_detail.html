@@ -1,55 +1,103 @@
 {% extends "layout.html" %}
+{% set title = "Item Details" %}
 {% block content %}
-<h2>Scanned item</h2>
-
-<div class="card">
-  <p><b>Name:</b> {{ item.name }}</p>
-  <p><b>Type:</b> {{ item.type }}</p>
-  <p><b>Description:</b> {{ item.description or "—" }}</p>
-  <p><b>Current quantity:</b> {{ item.quantity }}</p>
-  <p><b>QR:</b> {{ item.qr_code }}</p>
-  <p><b>Last added (IN):</b> {{ item.last_in_ts or "Never" }}</p>
-  <p><b>Last removed (OUT):</b> {{ item.last_out_ts or "Never" }}</p>
-  <p><b>Last event:</b> {{ item.last_event_action or "—" }} ({{ item.last_event_qty or "" }}) by {{ item.last_event_by or "—" }} at {{ item.last_event_ts or "—" }}</p>
+<div class="dashboard-header">
+    <h1>📦 Item Details: {{ item.name }}</h1>
+    <p>Manage stock and view history for this item</p>
 </div>
 
-<hr>
-<h3>Stock actions</h3>
+<div class="card">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div>
+            <h4>📦 Basic Info</h4>
+            <p><strong>Name:</strong> {{ item.name }}</p>
+            <p><strong>Type:</strong> {{ item.type }}</p>
+            <p><strong>Description:</strong> {{ item.description or "—" }}</p>
+            <p><strong>QR Code:</strong> {{ item.qr_code }}</p>
+        </div>
+        <div>
+            <h4>📊 Stock Status</h4>
+            <p><strong>Current Quantity:</strong> {{ item.quantity }}</p>
+            <p><strong>Last Added (IN):</strong> {{ item.last_in_ts or "Never" }}</p>
+            <p><strong>Last Removed (OUT):</strong> {{ item.last_out_ts or "Never" }}</p>
+        </div>
+        <div>
+            <h4>📈 Last Event</h4>
+            <p><strong>Action:</strong> {{ item.last_event_action or "—" }}</p>
+            <p><strong>Quantity:</strong> {{ item.last_event_qty or "—" }}</p>
+            <p><strong>By:</strong> {{ item.last_event_by or "—" }}</p>
+            <p><strong>At:</strong> {{ item.last_event_ts or "—" }}</p>
+        </div>
+    </div>
+</div>
 
-<form method="post" action="/stock/ADD/{{ item.id }}">
-  <b>Add</b> qty:
-  <input name="quantity" type="number" min="1" value="1">
-  <input name="note" placeholder="note (optional)">
-  <button type="submit">Add</button>
-</form>
+<div class="card">
+    <h3>⚡ Stock Actions</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+        <form method="post" action="{{ url_for('scan.stock_action', action='ADD', item_id=item.id) }}">
+            <h4>➕ Add Stock</h4>
+            <div class="form-group">
+                <label>Quantity to Add</label>
+                <input name="quantity" type="number" min="1" value="1" required>
+            </div>
+            <div class="form-group">
+                <label>Note (optional)</label>
+                <input name="note" placeholder="Add a note">
+            </div>
+            <button type="submit" class="btn btn-primary">📥 Add Stock</button>
+        </form>
 
-<form method="post" action="/stock/REMOVE/{{ item.id }}">
-  <b>Remove</b> qty:
-  <input name="quantity" type="number" min="1" value="1">
-  <input name="note" placeholder="note (optional)">
-  <button type="submit">Remove</button>
-</form>
+        <form method="post" action="{{ url_for('scan.stock_action', action='REMOVE', item_id=item.id) }}">
+            <h4>➖ Remove Stock</h4>
+            <div class="form-group">
+                <label>Quantity to Remove</label>
+                <input name="quantity" type="number" min="1" value="1" required>
+            </div>
+            <div class="form-group">
+                <label>Note (optional)</label>
+                <input name="note" placeholder="Add a note">
+            </div>
+            <button type="submit" class="btn btn-secondary">📤 Remove Stock</button>
+        </form>
 
-<form method="post" action="/stock/RETURN/{{ item.id }}">
-  <b>Return</b> qty:
-  <input name="quantity" type="number" min="1" value="1">
-  <input name="note" placeholder="note (optional)">
-  <button type="submit">Return</button>
-</form>
+        <form method="post" action="{{ url_for('scan.stock_action', action='RETURN', item_id=item.id) }}">
+            <h4>↩️ Return Stock</h4>
+            <div class="form-group">
+                <label>Quantity to Return</label>
+                <input name="quantity" type="number" min="1" value="1" required>
+            </div>
+            <div class="form-group">
+                <label>Note (optional)</label>
+                <input name="note" placeholder="Add a note">
+            </div>
+            <button type="submit" class="btn btn-secondary">🔄 Return Stock</button>
+        </form>
+    </div>
+</div>
 
-<hr>
-<h3>Recent history</h3>
-<table border="1" cellpadding="6">
-  <tr><th>Time</th><th>Action</th><th>Qty</th><th>User</th><th>Note</th></tr>
-  {% for e in events %}
-  <tr>
-    <td>{{ e.timestamp_created }}</td>
-    <td>{{ e.action }}</td>
-    <td>{{ e.quantity }}</td>
-    <td>{{ e.user_name }}</td>
-    <td>{{ e.note or "" }}</td>
-  </tr>
-  {% endfor %}
-</table>
-
+<div class="inventory-table">
+    <h3>📜 Recent History</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>🕒 Time</th>
+                <th>⚡ Action</th>
+                <th>🔢 Quantity</th>
+                <th>👤 User</th>
+                <th>📝 Note</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for e in events %}
+            <tr>
+                <td>{{ e.timestamp_created }}</td>
+                <td>{{ e.action }}</td>
+                <td>{{ e.quantity }}</td>
+                <td>{{ e.user_name }}</td>
+                <td>{{ e.note or "—" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

@@ -1,20 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Warehouse System</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <title>Dronify - {{ title or 'Dashboard' }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
+    <nav>
+        <a href="{{ url_for('dashboard.dashboard') }}">📊 Dashboard</a>
+        <a href="{{ url_for('inventory.inventory') }}">📦 Inventory</a>
+        <a href="{{ url_for('scan.scan') }}">📱 Scan</a>
+        {% if current_user.role == 'ADMIN' %}
+        <a href="{{ url_for('dashboard.manage_users') }}">👥 Users</a>
+        {% endif %}
+        <a href="{{ url_for('auth.logout') }}">🚪 Logout</a>
+    </nav>
 
-<nav>
-  <a href="/dashboard">Dashboard</a>
-  <a href="/inventory">Inventory</a>
-  <a href="/logout">Logout</a>
-</nav>
-
-<div class="content">
-  {% block content %}{% endblock %}
-</div>
-
+    <main>
+        {% block content %}{% endblock %}
+    </main>
 </body>
 </html>

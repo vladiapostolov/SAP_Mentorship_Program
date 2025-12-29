@@ -1,15 +1,92 @@
 {% extends "layout.html" %}
+{% set title = "Dashboard" %}
 {% block content %}
-<h2>Dashboard</h2>
+<div class="dashboard-header">
+    <h1>🚁 Welcome to Dronify, {{ user.full_name }}</h1>
+    <p>Role: {{ user.role }} | {% if user.role == 'ADMIN' %}Full System Administrator{% else %}Warehouse Staff{% endif %}</p>
+</div>
 
-<p>Welcome, {{ user.full_name }} ({{ user.role }})</p>
+{% if user.role == 'ADMIN' %}
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <h3>{{ stats.total_users or 0 }}</h3>
+        <p>👥 Total Users</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ stats.total_items }}</h3>
+        <p>📦 Total Items</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ stats.total_quantity }}</h3>
+        <p>🔢 Total Quantity</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ stats.low_stock_items }}</h3>
+        <p>⚠️ Low Stock Items</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ stats.events_today }}</h3>
+        <p>📈 Events Today</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ stats.inbound_qty_today }}</h3>
+        <p>📥 Inbound Today</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ stats.outbound_qty_today }}</h3>
+        <p>📤 Outbound Today</p>
+    </div>
+</div>
 
 <div class="cards">
-  <div class="card">Total items: <b>{{ stats.total_items }}</b></div>
-  <div class="card">Total quantity: <b>{{ stats.total_quantity }}</b></div>
-  <div class="card">Low stock items: <b>{{ stats.low_stock_items }}</b></div>
-  <div class="card">Events today: <b>{{ stats.events_today }}</b></div>
-  <div class="card">Inbound qty today: <b>{{ stats.inbound_qty_today }}</b></div>
-  <div class="card">Outbound qty today: <b>{{ stats.outbound_qty_today }}</b></div>
+    <div class="card">
+        <h3>🔧 Admin Controls</h3>
+        <p><a href="{{ url_for('inventory.inventory') }}" class="btn btn-primary">📦 Manage Inventory</a></p>
+        <p><a href="{{ url_for('scan.scan') }}" class="btn btn-secondary">📱 Scan QR Codes</a></p>
+        <p><a href="{{ url_for('dashboard.manage_users') }}" class="btn btn-secondary">👥 Manage Users</a></p>
+        <p><a href="#" class="btn btn-secondary">📊 Advanced Reports</a></p>
+    </div>
+    <div class="card">
+        <h3>🏭 Warehouse Operations</h3>
+        <p>Full control over all warehouse functions</p>
+        <ul>
+            <li>✅ Add/Remove inventory items</li>
+            <li>✅ Process stock movements</li>
+            <li>✅ View all user activities</li>
+            <li>✅ Generate reports</li>
+        </ul>
+    </div>
 </div>
+{% else %}
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <h3>{{ stats.total_items }}</h3>
+        <p>📦 Items Available</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ stats.low_stock_items }}</h3>
+        <p>⚠️ Low Stock Alerts</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ stats.events_today }}</h3>
+        <p>📈 Today's Activities</p>
+    </div>
+</div>
+
+<div class="cards">
+    <div class="card">
+        <h3>📱 Quick Actions</h3>
+        <p><a href="{{ url_for('scan.scan') }}" class="btn btn-primary">📷 Scan QR Code</a></p>
+        <p><a href="{{ url_for('inventory.inventory') }}" class="btn btn-secondary">📦 View Inventory</a></p>
+    </div>
+    <div class="card">
+        <h3>📋 Your Tasks</h3>
+        <ul>
+            <li>📱 Scan items for stock updates</li>
+            <li>📦 Check inventory levels</li>
+            <li>⚠️ Monitor low stock alerts</li>
+        </ul>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

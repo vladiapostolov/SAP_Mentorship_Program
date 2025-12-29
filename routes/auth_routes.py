@@ -6,7 +6,7 @@ auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.route("/")
 def home():
-    return redirect(url_for("auth.login"))
+    return render_template("welcome.html")
 
 @auth_bp.route("/login", methods=["GET","POST"])
 def login():
@@ -32,7 +32,7 @@ def register():
             flash("Email already registered", "warning")
             return render_template("register.html")
 
-        register_user(first_name, last_name, email, password, role="BASIC_USER")
+        register_user(first_name, last_name, email, password, role="STAFF")
         flash("Account created. Please login.", "success")
         return redirect(url_for("auth.login"))
 

@@ -5,3 +5,5 @@ class Config:
     DB_USER = "root"
     DB_PASSWORD = "vladi2004"
     DB_NAME = "Dronify"
+
+    DEFAULT_WAREHOUSE_ID = 1

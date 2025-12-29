@@ -1,42 +1,78 @@
 {% extends "layout.html" %}
+{% set title = "Inventory" %}
 {% block content %}
-<h2>Inventory</h2>
+<div class="dashboard-header">
+    <h1>📦 Inventory Management</h1>
+    <p>Track and manage your drone parts and equipment</p>
+</div>
 
-<p><a href="/scan">📷 Scan QR (PC camera)</a></p>
+<div class="card">
+    <p><a href="{{ url_for('scan.scan') }}" class="btn btn-primary">📷 Scan QR Code</a></p>
+</div>
 
-<table border="1" cellpadding="6">
-  <tr>
-    <th>Name</th><th>Type</th><th>Qty</th><th>Min</th><th>Low?</th><th>QR</th><th>Last IN</th><th>Last OUT</th>
-  </tr>
-  {% for it in items %}
-  <tr>
-    <td>{{ it.name }}</td>
-    <td>{{ it.type }}</td>
-    <td>{{ it.quantity }}</td>
-    <td>{{ it.min_quantity }}</td>
-    <td>{% if it.is_low_stock %}⚠{% endif %}</td>
-    <td>{{ it.qr_code }}</td>
-    <td>{{ it.last_in_ts or "—" }}</td>
-    <td>{{ it.last_out_ts or "—" }}</td>
-  </tr>
-  {% endfor %}
-</table>
+<div class="inventory-table">
+    <table>
+        <thead>
+            <tr>
+                <th>📦 Name</th>
+                <th>🏷️ Type</th>
+                <th>🔢 Quantity</th>
+                <th>📉 Min Qty</th>
+                <th>⚠️ Status</th>
+                <th>📱 QR Code</th>
+                <th>📥 Last IN</th>
+                <th>📤 Last OUT</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for it in items %}
+            <tr>
+                <td>{{ it.name }}</td>
+                <td>{{ it.type }}</td>
+                <td>{{ it.quantity }}</td>
+                <td>{{ it.min_quantity }}</td>
+                <td>{% if it.is_low_stock %}⚠️ Low Stock{% else %}✅ OK{% endif %}</td>
+                <td>{{ it.qr_code or "—" }}</td>
+                <td>{{ it.last_in_ts or "—" }}</td>
+                <td>{{ it.last_out_ts or "—" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
-<hr>
-<h3>Add item (admin tool for v1)</h3>
-<form method="post" action="/inventory/add">
-  <input name="name" placeholder="Name" required><br><br>
-  <textarea name="description" placeholder="Description"></textarea><br><br>
-
-  <select name="type" required>
-    {% for t in allowed_types %}
-      <option value="{{t}}">{{t}}</option>
-    {% endfor %}
-  </select><br><br>
-
-  <input name="quantity" type="number" value="0" min="0" required><br><br>
-  <input name="qr_code" placeholder="QR code content (unique)" required><br><br>
-  <button type="submit">Add</button>
-</form>
-
+<div class="add-item-form">
+    <h3>➕ Add New Item</h3>
+    <form method="post" action="{{ url_for('inventory.inventory_add') }}">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="name">📦 Item Name</label>
+                <input name="name" id="name" placeholder="Enter item name" required>
+            </div>
+            <div class="form-group">
+                <label for="type">🏷️ Item Type</label>
+                <select name="type" id="type" required>
+                    {% for t in allowed_types %}
+                        <option value="{{ t }}">{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="description">📝 Description</label>
+            <textarea name="description" id="description" placeholder="Optional description"></textarea>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="quantity">🔢 Initial Quantity</label>
+                <input name="quantity" id="quantity" type="number" value="0" min="0" required>
+            </div>
+            <div class="form-group">
+                <label for="qr_code">📱 QR Code</label>
+                <input name="qr_code" id="qr_code" placeholder="Unique QR code content" required>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">🚀 Add Item</button>
+    </form>
+</div>
 {% endblock %}

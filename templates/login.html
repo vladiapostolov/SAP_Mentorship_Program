@@ -1,15 +1,39 @@
-<!doctype html>
-<html>
-<head><meta charset="utf-8"><title>Login</title></head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Dronify</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
 <body>
-  <h2>Login</h2>
-  <form method="post">
-    <label>Email</label><br>
-    <input name="email" type="email" required><br><br>
-    <label>Password</label><br>
-    <input name="password" type="password" required><br><br>
-    <button type="submit">Login</button>
-  </form>
-  <p><a href="/register">Register</a></p>
+    <div class="container">
+        <h2>🔐 Login to Dronify</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form method="post">
+            <div class="form-group">
+                <label for="email">📧 Email Address</label>
+                <input name="email" type="email" id="email" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">🔒 Password</label>
+                <input name="password" type="password" id="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">🚀 Login</button>
+        </form>
+        <p style="text-align: center; margin-top: 1.5rem;">
+            Don't have an account? <a href="{{ url_for('auth.register') }}" style="color: var(--primary-color); font-weight: 600;">Register here</a>
+        </p>
+        <p style="text-align: center;">
+            <a href="{{ url_for('auth.home') }}" style="color: var(--secondary-color);">← Back to Welcome</a>
+        </p>
+    </div>
 </body>
 </html>
