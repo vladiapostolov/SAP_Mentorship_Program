@@ -18,17 +18,9 @@
 </div>
 
 <div class="card">
-    <h3>📷 Camera Scanning (Advanced)</h3>
-    <p><strong>Note:</strong> This requires camera permissions to be granted to Terminal/Python.</p>
-    <p>To enable camera access on macOS:</p>
-    <ol>
-        <li>Open <strong>System Preferences → Security & Privacy → Camera</strong></li>
-        <li>Grant access to <strong>Terminal</strong> or <strong>Python</strong></li>
-        <li>Restart the server after granting permissions</li>
-    </ol>
-    <form method="post" action="{{ url_for('scan.scan_process') }}">
-        <button type="submit" class="btn btn-secondary">📷 Start Camera Scan</button>
-    </form>
+    <h3>📷 Camera Scanning</h3>
+    <p>Use your camera to scan QR codes directly in the browser.</p>
+    <a href="{{ url_for('scan.scan_camera') }}" class="btn btn-secondary">📷 Start Camera Scan</a>
 </div>
 
 <div class="card">

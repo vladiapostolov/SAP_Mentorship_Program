@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, flash, redirect, url_for
 from flask_login import LoginManager, current_user, logout_user
 from config import Config
 from services.auth_service import get_user_by_id
@@ -8,6 +8,8 @@ from routes.dashboard_routes import dashboard_bp
 from routes.inventory_routes import inventory_bp
 from routes.scan_routes import scan_bp
 from routes.warehouse_routes import warehouse_bp
+from routes.statistics_routes import statistics_bp
+from routes.reports_routes import reports_bp
 
 def create_app():
     app = Flask(__name__)
@@ -33,6 +35,8 @@ def create_app():
     app.register_blueprint(inventory_bp)
     app.register_blueprint(scan_bp)
     app.register_blueprint(warehouse_bp)
+    app.register_blueprint(statistics_bp)
+    app.register_blueprint(reports_bp)
 
     return app
 

@@ -12,6 +12,7 @@
         <a href="{{ url_for('inventory.inventory') }}">📦 Inventory</a>
         <a href="{{ url_for('scan.scan') }}">📱 Scan</a>
         {% if current_user.role == 'ADMIN' %}
+        <a href="{{ url_for('statistics.statistics') }}">📈 Statistics</a>
         <a href="{{ url_for('dashboard.manage_users') }}">👥 Users</a>
         {% endif %}
         <a href="{{ url_for('auth.logout') }}">🚪 Logout</a>

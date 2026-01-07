@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+{% set title = "Camera QR Scanner" %}
+{% block content %}
+<div class="dashboard-header">
+    <h1>📷 Camera QR Scanner</h1>
+    <p>Position QR code in front of camera</p>
+</div>
+
+<div class="card">
+    <div style="text-align: center;">
+        <img src="{{ url_for('scan.video_feed') }}" 
+             style="max-width: 100%; border: 2px solid #ddd; border-radius: 8px;"
+             alt="Camera feed">
+    </div>
+    
+    <div id="status" style="margin-top: 20px; padding: 15px; border-radius: 5px; background: #f0f0f0; text-align: center;">
+        <p><strong>Status:</strong> <span id="scan-status">Waiting for QR code...</span></p>
+        <p id="qr-result" style="display: none; color: #28a745; font-weight: bold;"></p>
+    </div>
+</div>
+
+<div class="card">
+    <a href="{{ url_for('scan.scan') }}" class="btn btn-secondary">← Back to Scanner</a>
+</div>
+
+<script>
+let scanInterval;
+
+function checkForQRCode() {
+    fetch('{{ url_for("scan.get_qr_code") }}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.qr_code) {
+                document.getElementById('scan-status').textContent = 'QR Code Detected!';
+                document.getElementById('qr-result').textContent = 'Code: ' + data.qr_code;
+                document.getElementById('qr-result').style.display = 'block';
+                
+                // Stop checking and redirect to item details
+                clearInterval(scanInterval);
+                
+                setTimeout(() => {
+                    window.location.href = '{{ url_for("scan.scan_manual") }}?qr_code=' + encodeURIComponent(data.qr_code);
+                }, 1000);
+            }
+        })
+        .catch(error => {
+            console.error('Error checking for QR code:', error);
+        });
+}
+
+// Start checking for QR codes every 500ms
+scanInterval = setInterval(checkForQRCode, 500);
+
+// Clean up when page is closed
+window.addEventListener('beforeunload', () => {
+    clearInterval(scanInterval);
+});
+</script>
+{% endblock %}
