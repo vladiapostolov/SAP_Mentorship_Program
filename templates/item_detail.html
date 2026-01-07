@@ -61,21 +61,6 @@
             </div>
             <button type="submit" class="btn {% if current_user.role == 'ADMIN' %}btn-secondary{% else %}btn-primary{% endif %}">{% if current_user.role == 'ADMIN' %}📤 Remove Stock{% else %}🛒 Order Item{% endif %}</button>
         </form>
-
-        {% if current_user.role == 'ADMIN' %}
-        <form method="post" action="{{ url_for('scan.stock_action', action='RETURN', item_id=item.id) }}">
-            <h4>↩️ Return Stock</h4>
-            <div class="form-group">
-                <label>Quantity to Return</label>
-                <input name="quantity" type="number" min="1" value="1" required>
-            </div>
-            <div class="form-group">
-                <label>Note (optional)</label>
-                <input name="note" placeholder="Add a note">
-            </div>
-            <button type="submit" class="btn btn-secondary">🔄 Return Stock</button>
-        </form>
-        {% endif %}
     </div>
 </div>
 

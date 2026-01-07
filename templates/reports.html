@@ -1,0 +1,365 @@
+{% extends "layout.html" %}
+{% set title = "Advanced Reports" %}
+{% block content %}
+<div class="dashboard-header">
+    <h1>📊 Advanced Reports & Analytics</h1>
+    <p>Visual insights and trends for your inventory</p>
+</div>
+
+<!-- Time Period Filter -->
+<div class="card">
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <strong>Time Period:</strong>
+        <a href="{{ url_for('reports.reports', days=7) }}" 
+           class="btn {% if days == 7 %}btn-primary{% else %}btn-secondary{% endif %}" 
+           style="padding: 8px 16px;">Last 7 Days</a>
+        <a href="{{ url_for('reports.reports', days=30) }}" 
+           class="btn {% if days == 30 %}btn-primary{% else %}btn-secondary{% endif %}" 
+           style="padding: 8px 16px;">Last 30 Days</a>
+        <a href="{{ url_for('reports.reports', days=90) }}" 
+           class="btn {% if days == 90 %}btn-primary{% else %}btn-secondary{% endif %}" 
+           style="padding: 8px 16px;">Last 90 Days</a>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+{% if summary %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>{{ summary.total_transactions or 0 }}</h3>
+        <p>📊 Total Transactions</p>
+    </div>
+    <div class="stat-card success">
+        <h3>+{{ summary.total_added or 0 }}</h3>
+        <p>📥 Items Added</p>
+    </div>
+    <div class="stat-card danger">
+        <h3>-{{ summary.total_removed or 0 }}</h3>
+        <p>📤 Items Removed</p>
+    </div>
+    <div class="stat-card warning">
+        <h3>{{ summary.active_items or 0 }}</h3>
+        <p>📦 Active Items</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Charts Row 1 -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 20px;">
+    <!-- Daily Activity Chart -->
+    <div class="card">
+        <h3>📈 Daily Activity Trend</h3>
+        <div style="position: relative; height: 250px;">
+            <canvas id="dailyActivityChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Activity by Type Chart -->
+    <div class="card">
+        <h3>🏷️ Activity by Item Type</h3>
+        <div style="position: relative; height: 250px;">
+            <canvas id="activityByTypeChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 20px;">
+    <!-- Top Added Items Chart -->
+    <div class="card">
+        <h3>📥 Top 5 Added Items</h3>
+        <div style="position: relative; height: 250px;">
+            <canvas id="topAddedChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Top Removed Items Chart -->
+    <div class="card">
+        <h3>📤 Top 5 Removed Items</h3>
+        <div style="position: relative; height: 250px;">
+            <canvas id="topRemovedChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Low Stock Alert -->
+{% if low_stock %}
+<div class="card" style="border-left: 4px solid #dc3545;">
+    <h3>⚠️ Low Stock Alerts</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+        {% for item in low_stock %}
+        <div style="padding: 15px; background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%); border-radius: 8px;">
+            <h4 style="margin: 0 0 10px 0; color: #dc3545;">{{ item.name }}</h4>
+            <p style="margin: 5px 0;"><strong>Type:</strong> {{ item.type }}</p>
+            <p style="margin: 5px 0;"><strong>Current:</strong> <span style="color: #dc3545; font-weight: bold;">{{ item.quantity }}</span></p>
+            <p style="margin: 5px 0;"><strong>Min Required:</strong> {{ item.min_quantity }}</p>
+            <div style="margin-top: 10px; height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden;">
+                <div style="width: {{ (item.quantity / item.min_quantity * 100)|round|int }}%; height: 100%; background: #dc3545;"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Net Change Analysis -->
+<div class="card">
+    <h3>📊 Inventory Net Change Analysis</h3>
+    <div style="position: relative; height: 200px;">
+        <canvas id="netChangeChart"></canvas>
+    </div>
+</div>
+
+<div class="card">
+    <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+    <a href="{{ url_for('statistics.statistics', days=days) }}" class="btn btn-primary">📈 View Detailed Statistics</a>
+</div>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+// Daily Activity Line Chart
+const dailyActivityCtx = document.getElementById('dailyActivityChart').getContext('2d');
+const dailyActivityChart = new Chart(dailyActivityCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for day in daily_activity|reverse %}'{{ day.date }}',{% endfor %}],
+        datasets: [
+            {
+                label: 'Added',
+                data: [{% for day in daily_activity|reverse %}{{ day.added }},{% endfor %}],
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Removed',
+                data: [{% for day in daily_activity|reverse %}{{ day.removed }},{% endfor %}],
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                tension: 0.4,
+                fill: true
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 2,
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            tooltip: {
+                mode: 'index',
+                intersect: false,
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Activity by Type Bar Chart
+const activityByTypeCtx = document.getElementById('activityByTypeChart').getContext('2d');
+const activityByTypeChart = new Chart(activityByTypeCtx, {
+    type: 'bar',
+    data: {
+        labels: [{% for type in type_activity %}'{{ type.type }}',{% endfor %}],
+        datasets: [
+            {
+                label: 'Added',
+                data: [{% for type in type_activity %}{{ type.total_added }},{% endfor %}],
+                backgroundColor: '#28a745',
+            },
+            {
+                label: 'Removed',
+                data: [{% for type in type_activity %}{{ type.total_removed }},{% endfor %}],
+                backgroundColor: '#dc3545',
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 2,
+        plugins: {
+            legend: {
+                position: 'top',
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Top Added Items Horizontal Bar Chart
+const topAddedCtx = document.getElementById('topAddedChart').getContext('2d');
+const topAddedChart = new Chart(topAddedCtx, {
+    type: 'bar',
+    data: {
+        labels: [{% for item in top_added %}'{{ item.name }}',{% endfor %}],
+        datasets: [{
+            label: 'Quantity Added',
+            data: [{% for item in top_added %}{{ item.total_added }},{% endfor %}],
+            backgroundColor: [
+                '#28a745',
+                '#20c997',
+                '#17a2b8',
+                '#007bff',
+                '#6610f2'
+            ],
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1.5,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            x: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Top Removed Items Horizontal Bar Chart
+const topRemovedCtx = document.getElementById('topRemovedChart').getContext('2d');
+const topRemovedChart = new Chart(topRemovedCtx, {
+    type: 'bar',
+    data: {
+        labels: [{% for item in top_removed %}'{{ item.name }}',{% endfor %}],
+        datasets: [{
+            label: 'Quantity Removed',
+            data: [{% for item in top_removed %}{{ item.total_removed }},{% endfor %}],
+            backgroundColor: [
+                '#dc3545',
+                '#e74c3c',
+                '#c0392b',
+                '#a93226',
+                '#922b21'
+            ],
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1.5,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            x: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Net Change Chart
+const netChangeCtx = document.getElementById('netChangeChart').getContext('2d');
+const netChangeChart = new Chart(netChangeCtx, {
+    type: 'bar',
+    data: {
+        labels: [{% for day in daily_activity|reverse %}'{{ day.date }}',{% endfor %}],
+        datasets: [{
+            label: 'Net Change',
+            data: [{% for day in daily_activity|reverse %}{{ day.added - day.removed }},{% endfor %}],
+            backgroundColor: [{% for day in daily_activity %}{% if day.added - day.removed > 0 %}'#28a745'{% elif day.added - day.removed < 0 %}'#dc3545'{% else %}'#6c757d'{% endif %},{% endfor %}],
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 3,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+
+<style>
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 25px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.stat-card.success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.stat-card.danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+.stat-card.warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+}
+
+.stat-card h3 {
+    margin: 0 0 10px 0;
+    font-size: 2.5em;
+    font-weight: bold;
+}
+
+.stat-card p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1em;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card h3 {
+    margin-top: 0;
+    color: #333;
+}
+</style>
+{% endblock %}

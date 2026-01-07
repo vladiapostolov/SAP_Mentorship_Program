@@ -16,7 +16,7 @@ def list_inventory(warehouse_id: int = None):
     with db_cursor() as (_, cur):
         cur.execute("""
             SELECT * FROM vw_inventory
-            WHERE warehouse_id=%s
+            WHERE warehouse_id=%s AND quantity > 0
             ORDER BY name
         """, (warehouse_id,))
         return cur.fetchall()

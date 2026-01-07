@@ -22,28 +22,73 @@
                 <th>📱 QR Code</th>
                 <th>📥 Last IN</th>
                 <th>📤 Last OUT</th>
-                {% if current_user.role == 'ADMIN' %}<th>🛠️ Actions</th>{% endif %}
+                <th>🛠️ Quick Actions</th>
+                {% if current_user.role == 'ADMIN' %}<th>🗑️ Delete</th>{% endif %}
             </tr>
         </thead>
         <tbody>
             {% for it in items %}
             <tr>
-                <td>{{ it.name }}</td>
-                <td>{{ it.type }}</td>
-                <td>{{ it.quantity }}</td>
+                <td><strong>{{ it.name }}</strong></td>
+                <td><span class="badge">{{ it.type }}</span></td>
+                <td><strong>{{ it.quantity }}</strong></td>
                 <td>{{ it.min_quantity }}</td>
-                <td>{% if it.is_low_stock %}⚠️ Low Stock{% else %}✅ OK{% endif %}</td>
-                <td>{{ it.qr_code or "—" }}</td>
+                <td>{% if it.is_low_stock %}<span style="color: #dc3545;">⚠️ Low Stock</span>{% else %}<span style="color: #28a745;">✅ OK</span>{% endif %}</td>
+                <td><code>{{ it.qr_code or "—" }}</code></td>
                 <td>{{ it.last_in_ts or "—" }}</td>
                 <td>{{ it.last_out_ts or "—" }}</td>
+                <td>
+                    <button onclick="openModal('add-{{ it.id }}')" class="btn btn-sm" style="background: #28a745; color: white; padding: 5px 10px;">➕</button>
+                    <button onclick="openModal('remove-{{ it.id }}')" class="btn btn-sm" style="background: #dc3545; color: white; padding: 5px 10px;">➖</button>
+                </td>
                 {% if current_user.role == 'ADMIN' %}
                 <td>
-                    <form method="post" action="{{ url_for('inventory.delete_item', item_id=it.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this item?')">
-                        <button type="submit" class="btn btn-danger btn-sm">🗑️ Delete</button>
+                    <form method="post" action="{{ url_for('inventory.delete_item', item_id=it.id) }}" style="display: inline;" onsubmit="return confirm('⚠️ WARNING: This will permanently delete {{ it.name }} and all its history. Are you sure?')">
+                        <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
                     </form>
                 </td>
                 {% endif %}
             </tr>
+            
+            <!-- Modals for this item -->
+            <div id="add-{{ it.id }}" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeModal('add-{{ it.id }}')">&times;</span>
+                    <h3>➕ Add Stock: {{ it.name }}</h3>
+                    <form method="post" action="{{ url_for('scan.stock_action', action='ADD', item_id=it.id) }}">
+                        <div class="form-group">
+                            <label>Quantity to Add</label>
+                            <input name="quantity" type="number" min="1" value="1" required autofocus>
+                        </div>
+                        <div class="form-group">
+                            <label>Note (optional)</label>
+                            <input name="note" placeholder="Add a note">
+                        </div>
+                        <button type="submit" class="btn btn-primary">📥 Add Stock</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('add-{{ it.id }}')">Cancel</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div id="remove-{{ it.id }}" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeModal('remove-{{ it.id }}')">&times;</span>
+                    <h3>➖ Remove Stock: {{ it.name }}</h3>
+                    <p style="color: #dc3545;"><strong>Current Quantity: {{ it.quantity }}</strong></p>
+                    <form method="post" action="{{ url_for('scan.stock_action', action='REMOVE', item_id=it.id) }}">
+                        <div class="form-group">
+                            <label>Quantity to Remove</label>
+                            <input name="quantity" type="number" min="1" max="{{ it.quantity }}" value="1" required autofocus>
+                        </div>
+                        <div class="form-group">
+                            <label>Note (optional)</label>
+                            <input name="note" placeholder="Add a note">
+                        </div>
+                        <button type="submit" class="btn" style="background: #dc3545; color: white;">📤 Remove Stock</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('remove-{{ it.id }}')">Cancel</button>
+                    </form>
+                </div>
+            </div>
             {% endfor %}
         </tbody>
     </table>
@@ -85,4 +130,77 @@
     </form>
 </div>
 {% endif %}
+
+<style>
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 20px;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: #e9ecef;
+    color: #495057;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+code {
+    background: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+</style>
+
+<script>
+function openModal(modalId) {
+    document.getElementById(modalId).style.display = 'block';
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+// Close modal when clicking outside of it
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+    }
+}
+</script>
 {% endblock %}
