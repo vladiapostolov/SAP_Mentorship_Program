@@ -89,6 +89,33 @@ DDL = [
     ) ENGINE=InnoDB;
     """,
 
+    # Requests table
+    """
+    CREATE TABLE IF NOT EXISTS requests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        item_id INT NOT NULL,
+        quantity INT NOT NULL,
+        message TEXT NULL,
+        status ENUM('PENDING','APPROVED','REJECTED','COMPLETED') NOT NULL DEFAULT 'PENDING',
+        admin_note TEXT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+        CONSTRAINT fk_req_user FOREIGN KEY (user_id)
+            REFERENCES users(id)
+            ON DELETE RESTRICT ON UPDATE CASCADE,
+
+        CONSTRAINT fk_req_item FOREIGN KEY (item_id)
+            REFERENCES items(id)
+            ON DELETE RESTRICT ON UPDATE CASCADE,
+
+        INDEX idx_req_status (status),
+        INDEX idx_req_user (user_id),
+        INDEX idx_req_created (created_at)
+    ) ENGINE=InnoDB;
+    """,
+
     # Views
     """
     CREATE OR REPLACE VIEW vw_inventory AS

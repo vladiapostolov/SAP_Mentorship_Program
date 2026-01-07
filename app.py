@@ -10,6 +10,7 @@ from routes.scan_routes import scan_bp
 from routes.warehouse_routes import warehouse_bp
 from routes.statistics_routes import statistics_bp
 from routes.reports_routes import reports_bp
+from routes.request_routes import request_bp
 
 def create_app():
     app = Flask(__name__)
@@ -37,6 +38,7 @@ def create_app():
     app.register_blueprint(warehouse_bp)
     app.register_blueprint(statistics_bp)
     app.register_blueprint(reports_bp)
+    app.register_blueprint(request_bp)
 
     return app
 

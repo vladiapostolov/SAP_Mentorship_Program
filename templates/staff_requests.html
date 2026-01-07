@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+{% set title = "My Requests" %}
+{% block content %}
+<div class="dashboard-header">
+    <h1>📬 My Requests</h1>
+    <p>View your item request history</p>
+</div>
+
+<div class="card">
+    <a href="{{ url_for('requests.create_request_page') }}" class="btn btn-primary">➕ New Request</a>
+</div>
+
+<!-- Requests List -->
+{% if requests %}
+<div class="card">
+    <h3>Your Request History</h3>
+    <div style="display: grid; gap: 15px; margin-top: 20px;">
+        {% for req in requests %}
+        <div style="border: 2px solid {% if req.status == 'PENDING' %}#ffc107{% elif req.status == 'APPROVED' %}#28a745{% elif req.status == 'COMPLETED' %}#17a2b8{% else %}#dc3545{% endif %}; padding: 20px; border-radius: 10px; background: {% if req.status == 'PENDING' %}#fff9e6{% elif req.status == 'APPROVED' %}#e8f5e9{% elif req.status == 'COMPLETED' %}#e3f2fd{% else %}#ffebee{% endif %};">
+            <div style="margin-bottom: 10px;">
+                <h4 style="margin: 0; color: #333;">
+                    <span style="background: {% if req.status == 'PENDING' %}#ffc107{% elif req.status == 'APPROVED' %}#28a745{% elif req.status == 'COMPLETED' %}#17a2b8{% else %}#dc3545{% endif %}; color: white; padding: 4px 10px; border-radius: 5px; font-size: 0.8em; margin-right: 10px;">{{ req.status }}</span>
+                    {{ req.item_name }}
+                </h4>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <p style="margin: 5px 0;"><strong>📦 Item:</strong> {{ req.item_name }}</p>
+                    <p style="margin: 5px 0;"><strong>🏷️ Type:</strong> {{ req.item_type }}</p>
+                </div>
+                <div>
+                    <p style="margin: 5px 0;"><strong>🔢 Quantity:</strong> {{ req.quantity }}</p>
+                    <p style="margin: 5px 0;"><strong>📱 QR:</strong> <code>{{ req.item_qr }}</code></p>
+                </div>
+                <div>
+                    <p style="margin: 5px 0;"><strong>📅 Created:</strong> {{ req.created_at }}</p>
+                    <p style="margin: 5px 0;"><strong>🔄 Updated:</strong> {{ req.updated_at }}</p>
+                </div>
+            </div>
+            
+            {% if req.message %}
+            <div style="background: white; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                <strong>💬 Your Message:</strong>
+                <p style="margin: 5px 0;">{{ req.message }}</p>
+            </div>
+            {% endif %}
+            
+            {% if req.admin_note %}
+            <div style="background: #fff; padding: 10px; border-radius: 5px; border-left: 4px solid #007bff;">
+                <strong>📝 Admin Response:</strong>
+                <p style="margin: 5px 0;">{{ req.admin_note }}</p>
+            </div>
+            {% endif %}
+            
+            {% if req.status == 'PENDING' %}
+            <div style="margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 5px;">
+                ⏳ <em>Waiting for admin approval...</em>
+            </div>
+            {% elif req.status == 'APPROVED' %}
+            <div style="margin-top: 10px; padding: 10px; background: #d4edda; border-radius: 5px;">
+                ✅ <em>Your request has been approved!</em>
+            </div>
+            {% elif req.status == 'COMPLETED' %}
+            <div style="margin-top: 10px; padding: 10px; background: #d1ecf1; border-radius: 5px;">
+                🎯 <em>Request completed successfully.</em>
+            </div>
+            {% elif req.status == 'REJECTED' %}
+            <div style="margin-top: 10px; padding: 10px; background: #f8d7da; border-radius: 5px;">
+                ❌ <em>Request was rejected.</em>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <p style="text-align: center; color: #888; padding: 40px;">
+        You haven't made any requests yet.<br>
+        <a href="{{ url_for('requests.create_request_page') }}" class="btn btn-primary" style="margin-top: 15px;">Create Your First Request</a>
+    </p>
+</div>
+{% endif %}
+
+<div class="card">
+    <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+</div>
+
+<style>
+code {
+    background: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+</style>
+{% endblock %}

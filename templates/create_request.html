@@ -1,0 +1,115 @@
+{% extends "layout.html" %}
+{% set title = "Create Request" %}
+{% block content %}
+<div class="dashboard-header">
+    <h1>➕ Create New Request</h1>
+    <p>Request items from administrators</p>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}" style="padding: 15px; margin: 20px 0; border-radius: 5px; background: {% if category == 'success' %}#d4edda; color: #155724;{% else %}#f8d7da; color: #721c24;{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="card">
+    <h3>Request Form</h3>
+    
+    <form method="post" action="{{ url_for('requests.create_request_page') }}" style="max-width: 600px;">
+        <div class="form-group">
+            <label for="item_id">📦 Select Item *</label>
+            <select id="item_id" name="item_id" required>
+                <option value="">-- Choose an item --</option>
+                {% for item in items %}
+                <option value="{{ item.id }}" data-qr="{{ item.qr_code }}" data-type="{{ item.type }}">
+                    {{ item.name }} ({{ item.type }}) - QR: {{ item.qr_code }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="quantity">🔢 Quantity *</label>
+            <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+            <small style="color: #666; display: block; margin-top: 5px;">Enter the quantity you need</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="message">💬 Message (optional)</label>
+            <textarea id="message" name="message" rows="4" placeholder="Explain why you need these items or add any additional details..."></textarea>
+            <small style="color: #666; display: block; margin-top: 5px;">Add context to help admins process your request</small>
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button type="submit" class="btn btn-primary">📤 Submit Request</button>
+            <a href="{{ url_for('requests.requests_list') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<div class="card" style="background: #e3f2fd; border-left: 4px solid #2196f3;">
+    <h4 style="margin-top: 0; color: #1976d2;">ℹ️ How It Works</h4>
+    <ol style="margin: 10px 0; padding-left: 20px;">
+        <li>Select the item you need from the dropdown</li>
+        <li>Enter the quantity required</li>
+        <li>Optionally add a message explaining your need</li>
+        <li>Submit the request</li>
+        <li>Wait for admin approval</li>
+        <li>Check your request status in "My Requests"</li>
+    </ol>
+</div>
+
+<style>
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input[type="number"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.form-group input[type="number"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.alert {
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error,
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+</style>
+{% endblock %}

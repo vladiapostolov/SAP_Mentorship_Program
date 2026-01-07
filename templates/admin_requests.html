@@ -1,0 +1,187 @@
+{% extends "layout.html" %}
+{% set title = "Admin - Requests Inbox" %}
+{% block content %}
+<div class="dashboard-header">
+    <h1>📬 Requests Inbox</h1>
+    <p>Review and manage staff item requests</p>
+</div>
+
+<!-- Filter Tabs -->
+<div class="card">
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <strong>Filter:</strong>
+        <a href="{{ url_for('requests.requests_list', status='PENDING') }}" 
+           class="btn {% if status_filter == 'PENDING' %}btn-primary{% else %}btn-secondary{% endif %}" 
+           style="padding: 8px 16px;">⏳ Pending</a>
+        <a href="{{ url_for('requests.requests_list', status='APPROVED') }}" 
+           class="btn {% if status_filter == 'APPROVED' %}btn-primary{% else %}btn-secondary{% endif %}" 
+           style="padding: 8px 16px;">✅ Approved</a>
+        <a href="{{ url_for('requests.requests_list', status='COMPLETED') }}" 
+           class="btn {% if status_filter == 'COMPLETED' %}btn-primary{% else %}btn-secondary{% endif %}" 
+           style="padding: 8px 16px;">🎯 Completed</a>
+        <a href="{{ url_for('requests.requests_list', status='REJECTED') }}" 
+           class="btn {% if status_filter == 'REJECTED' %}btn-primary{% else %}btn-secondary{% endif %}" 
+           style="padding: 8px 16px;">❌ Rejected</a>
+        <a href="{{ url_for('requests.requests_list', status='ALL') }}" 
+           class="btn {% if status_filter == 'ALL' %}btn-primary{% else %}btn-secondary{% endif %}" 
+           style="padding: 8px 16px;">📋 All</a>
+    </div>
+</div>
+
+<!-- Requests List -->
+{% if requests %}
+<div class="card">
+    <h3>{{ status_filter|capitalize }} Requests</h3>
+    <div style="display: grid; gap: 15px; margin-top: 20px;">
+        {% for req in requests %}
+        <div style="border: 2px solid {% if req.status == 'PENDING' %}#ffc107{% elif req.status == 'APPROVED' %}#28a745{% elif req.status == 'COMPLETED' %}#17a2b8{% else %}#dc3545{% endif %}; padding: 20px; border-radius: 10px; background: {% if req.status == 'PENDING' %}#fff9e6{% elif req.status == 'APPROVED' %}#e8f5e9{% elif req.status == 'COMPLETED' %}#e3f2fd{% else %}#ffebee{% endif %};">
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: 20px;">
+                <div>
+                    <h4 style="margin: 0 0 15px 0; color: #333;">
+                        <span style="background: {% if req.status == 'PENDING' %}#ffc107{% elif req.status == 'APPROVED' %}#28a745{% elif req.status == 'COMPLETED' %}#17a2b8{% else %}#dc3545{% endif %}; color: white; padding: 4px 10px; border-radius: 5px; font-size: 0.8em;">{{ req.status }}</span>
+                        {{ req.user_name }} requested <strong>{{ req.item_name }}</strong>
+                    </h4>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <p style="margin: 5px 0;"><strong>📦 Item:</strong> {{ req.item_name }}</p>
+                            <p style="margin: 5px 0;"><strong>🏷️ Type:</strong> {{ req.item_type }}</p>
+                        </div>
+                        <div>
+                            <p style="margin: 5px 0;"><strong>🔢 Quantity:</strong> {{ req.quantity }}</p>
+                            <p style="margin: 5px 0;"><strong>📱 QR:</strong> <code>{{ req.item_qr }}</code></p>
+                        </div>
+                        <div>
+                            <p style="margin: 5px 0;"><strong>👤 Requested by:</strong> {{ req.user_name }}</p>
+                            <p style="margin: 5px 0;"><strong>📧 Email:</strong> {{ req.user_email }}</p>
+                        </div>
+                        <div>
+                            <p style="margin: 5px 0;"><strong>📅 Created:</strong> {{ req.created_at }}</p>
+                            <p style="margin: 5px 0;"><strong>🔄 Updated:</strong> {{ req.updated_at }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if req.message %}
+                    <div style="background: white; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                        <strong>💬 Message:</strong>
+                        <p style="margin: 5px 0;">{{ req.message }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if req.admin_note %}
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 5px;">
+                        <strong>📝 Admin Note:</strong>
+                        <p style="margin: 5px 0;">{{ req.admin_note }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Actions -->
+                <div style="display: flex; flex-direction: column; gap: 10px; min-width: 150px;">
+                    {% if req.status == 'PENDING' %}
+                    <form method="post" action="{{ url_for('requests.update_request', request_id=req.id) }}">
+                        <input type="hidden" name="status" value="APPROVED">
+                        <button type="submit" class="btn" style="width: 100%; background: #28a745; color: white;">✅ Approve</button>
+                    </form>
+                    <button onclick="openRejectModal({{ req.id }})" class="btn" style="width: 100%; background: #dc3545; color: white;">❌ Reject</button>
+                    {% elif req.status == 'APPROVED' %}
+                    <form method="post" action="{{ url_for('requests.update_request', request_id=req.id) }}">
+                        <input type="hidden" name="status" value="COMPLETED">
+                        <button type="submit" class="btn" style="width: 100%; background: #17a2b8; color: white;">🎯 Mark Complete</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reject Modal -->
+        <div id="reject-modal-{{ req.id }}" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeRejectModal({{ req.id }})">&times;</span>
+                <h3>❌ Reject Request</h3>
+                <form method="post" action="{{ url_for('requests.update_request', request_id=req.id) }}">
+                    <input type="hidden" name="status" value="REJECTED">
+                    <div class="form-group">
+                        <label>Reason for rejection (optional)</label>
+                        <textarea name="admin_note" rows="3" placeholder="Explain why this request was rejected..."></textarea>
+                    </div>
+                    <button type="submit" class="btn" style="background: #dc3545; color: white;">Confirm Rejection</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeRejectModal({{ req.id }})">Cancel</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <p style="text-align: center; color: #888; padding: 40px;">No {{ status_filter.lower() }} requests found.</p>
+</div>
+{% endif %}
+
+<div class="card">
+    <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+</div>
+
+<style>
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 20px;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+}
+
+code {
+    background: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+</style>
+
+<script>
+function openRejectModal(requestId) {
+    document.getElementById('reject-modal-' + requestId).style.display = 'block';
+}
+
+function closeRejectModal(requestId) {
+    document.getElementById('reject-modal-' + requestId).style.display = 'none';
+}
+
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}
